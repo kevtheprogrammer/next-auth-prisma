@@ -1,0 +1,221 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique @map("session_token")
+  userId       Int      @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  phoneNumber   String    @unique
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  firstName     String?
+  lastName      String?
+  password      String?
+  role          UserType  @default(STAFF)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  address       String?
+  position      String?
+  company       String?
+  city          String?
+  country       String?
+  province      String?
+  postalAdd     String?
+  isActive      Boolean?
+  avatar        String?
+
+  // Relations
+
+  sessions Session[]
+  order    Order[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Guest {
+  id                 String        @id @default(uuid())
+  firstName          String
+  lastName           String
+  email              String        @unique
+  phoneNumber        String?
+  idNo               String?
+  company            String?
+  city               String?
+  country            String?
+  province           String?
+  address            String?
+   
+  createdAt DateTime @default(now())
+
+  reservations Reservation[]
+  order        Order[]
+}
+
+enum PaymentMethod {
+  CASH
+  COMPANY
+  CARD
+}
+
+model Reservation {
+  id                 String            @id @default(uuid())
+  guestId            String
+  roomId             String
+  checkInDate        DateTime
+  checkOutDate       DateTime
+  adults             String?
+  children           String?
+  extraBed           Boolean?
+  bookedBy           String?
+  receiptionist      String?
+  dutyManager        String?
+  signature          String?
+  purpose_tourist    Boolean?      @default(false)
+  purpose_conference Boolean?      @default(false)
+  purpose_group      Boolean?      @default(false)
+  purpose_business   Boolean?      @default(false)
+  payment            PaymentMethod @default(CASH)
+
+  status        ReservationStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  Billing       Billing[]
+
+  room  Room  @relation(fields: [roomId], references: [id])
+  guest Guest @relation(fields: [guestId], references: [id])
+}
+
+model Room {
+  id            String        @id @default(uuid())
+  number        Int           @unique
+  type          RoomType      @default(STANDARD)
+  pricePerNight Float?
+  status        RoomStatus    @default(AVAILABLE)
+  reservations  Reservation[]
+}
+
+model Billing {
+  id            String    @id @default(uuid())
+  reservationId String
+  amount        Float
+  checkInDate   DateTime?
+  checkOutDate  DateTime?
+  paid          Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String
+  products Product[] // One category can have many products
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  thumb       String?
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(1)
+  discount    Float?   @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  section     ProductByType? @default(BAR) 
+
+  orderItems OrderItem[]
+  categoryId Int
+  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id      Int         @id @default(autoincrement())
+  userId  Int
+  guestId String
+  tax     Int?        @default(14)
+  status  OrderStatus @default(PENDING)
+
+  guest     Guest    @relation(fields: [guestId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int?
+  productId Int
+  quantity  Int     @default(1)
+  order     Order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  RETURNED
+  CANCELLED
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  MAINTENANCE
+}
+
+enum RoomType {
+  STANDARD
+  A_FRAMES
+  FLOATING
+  EXECUTIVE
+}
+
+enum UserType {
+  STAFF
+  ADMIN
+}
+
+enum ProductByType {
+  BAR
+  RESTAURANT
+  KITCHEN
+}
