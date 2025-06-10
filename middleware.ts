@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-export async function middleware(req: any) {
+export async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const path = url.pathname;
 
@@ -11,6 +11,8 @@ export async function middleware(req: any) {
   }
 
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+
+  console.log('Secrete -----------:', process.env.AUTH_SECRET);
   console.log('Token -----------:', token);
 
   // No token? Redirect to signin
