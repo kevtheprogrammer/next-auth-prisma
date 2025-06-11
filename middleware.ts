@@ -16,9 +16,6 @@ export async function middleware(req: NextRequest) {
 		id: string;
 	};
 
-	console.log("🔐 Token from middleware:", token);
-	console.log("🍪 Cookies:", req.cookies.getAll());
-
 	if (req.nextUrl.pathname.startsWith("/dashboard") && !token) {
 		const signInUrl = req.nextUrl.clone();
 		signInUrl.pathname = "/signin";
