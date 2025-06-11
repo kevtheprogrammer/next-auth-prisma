@@ -11,9 +11,10 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+  console.log("Cookies ------------:", req.cookies.getAll());
 
   console.log('Secrete -----------:', process.env.AUTH_SECRET);
-  console.log('Token -----------:', token);
+  console.log('Token   -----------:', token);
 
   // No token? Redirect to signin
   if (!token) {
