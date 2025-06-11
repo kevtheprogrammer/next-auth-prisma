@@ -1,12 +1,13 @@
 "use client";
 import { RootState } from "@/store";
 import { fetchUsers } from "@/store/actions/userAction";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function page() {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const [loading, setLoading] = useState(true);
 	const [page, setPage] = useState(1);
 	const limit = 10;
@@ -23,7 +24,7 @@ export default function page() {
 		dispatch(fetchUsers(filters) as any).finally(() => setLoading(false));
 	}, [page, search, city, country, company]);
 
-	const users = useSelector(
+	const users = useAppSelector(
 		(state: RootState) => state.user?.users?.data?.data || []
 	) as any;
 
@@ -34,7 +35,7 @@ export default function page() {
 			<main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
 				<h1 className="text-2xl font-bold">Dashboard</h1>
 				<p className="text-lg">Welcome to your dashboard!</p>
-				<h1>Users</h1>
+				<h1>Users Protected Pages</h1>
 				{users.length === 0 && <p className="text-gray-500">No users found.</p>}
 				{loading ? (<p className="text-gray-500">Loading...</p>) : (
 				<ul className="list-disc pl-5">
